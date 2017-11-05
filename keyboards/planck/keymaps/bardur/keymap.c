@@ -26,7 +26,8 @@ enum planck_layers {
   _LOWER,
   _RAISE,
   _PLOVER,
-  _ADJUST
+  _ADJUST,
+  _ISK
 };
 
 enum planck_keycodes {
@@ -37,8 +38,25 @@ enum planck_keycodes {
   LOWER,
   RAISE,
   BACKLIT,
-  EXT_PLV
+  EXT_PLV,
+  ISK,
+  KC_ACUTE_A,
+  KC_ACUTE_E,
+  KC_ACUTE_Y,
+  KC_ACUTE_U,
+  KC_ACUTE_I,
+  KC_ACUTE_O
 };
+
+bool isShiftDown = false;
+
+#define SS_RALT(string) SS_DOWN(X_RALT) string SS_UP(X_RALT)
+#define KC_ASH RALT(KC_Z)
+#define KC_ETH RALT(KC_D)
+#define KC_THORN RALT(KC_T)
+#define KC_OUML RALT(KC_P)
+//#define ACUTE() SEND_STRING("LALA")//SS_TAP(X_QUOT))//SS_TAP(KEY))
+//#define ACUTE2(string) SEND_STRING("'")//string)
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
@@ -50,14 +68,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * |------+------+------+------+------+------|------+------+------+------+------+------|
  * | Shift|   Z  |   X  |   C  |   V  |   B  |   N  |   M  |   ,  |   .  |  Up  |AltGr |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * | Ctrl |  Del |  GUI |   "  |Lower |    Space    |Raise |  /   | Left | Down |Right |
+ * | Ctrl |  GUI |  Alt |   "  |Lower |    Space    |Raise |  /   | Left | Down |Right |
  * `-----------------------------------------------------------------------------------'
  */
 [_QWERTY] = {
   {KC_ESC,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_BSPC},
   {KC_TAB,  KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_ENT},
-  {KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_UP,  KC_RALT},
-  {KC_LCTL, KC_DEL, KC_LGUI, KC_QUOT, LOWER,   KC_SPC,  KC_SPC,  RAISE,   KC_SLSH, KC_LEFT, KC_DOWN,   KC_RGHT}
+  {KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_UP,  ISK},//KC_RALT},
+  {KC_LCTL, KC_LGUI, KC_LALT, KC_QUOT, LOWER,   KC_SPC,  KC_SPC,  RAISE,   KC_SLSH, KC_LEFT, KC_DOWN,   KC_RGHT}
 },
 
 /* Colemak
@@ -167,8 +185,25 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   {_______, _______, MU_MOD,  AU_ON,   AU_OFF,  AG_NORM, AG_SWAP, QWERTY,  COLEMAK, DVORAK,  PLOVER,  _______},
   {_______, MUV_DE,  MUV_IN,  MU_ON,   MU_OFF,  MI_ON,   MI_OFF,  _______, _______, _______, _______, _______},
   {_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______}
-}
+},
 
+/* ISK
+ * ,-----------------------------------------------------------------------------------.
+ * | Esc  |      |      |   É  |      |   Þ  |   Ý  |   Ú  |   Í  |   Ó  |   Ö  | Bksp |
+ * |------+------+------+------+------+-------------+------+------+------+------+------|
+ * | Tab  |      |      |   Ð  |      |      |      |      |      |      |   ;  |Enter |
+ * |------+------+------+------+------+------|------+------+------+------+------+------|
+ * | Shift|   Æ  |      |      |      |      |      |      |   ,  |   .  |  Up  |      |
+ * |------+------+------+------+------+------+------+------+------+------+------+------|
+ * | Ctrl |  GUI |  Alt |   "  |      |    Space    |      |  /   | Left | Down |Right |
+ * `-----------------------------------------------------------------------------------'
+ */
+[_ISK] = {
+  {KC_ESC, _______, _______, KC_ACUTE_E, _______, KC_THORN, KC_ACUTE_Y, KC_ACUTE_U, KC_ACUTE_I,    KC_ACUTE_O,    KC_OUML,    KC_BSPC},
+  {KC_TAB, KC_ACUTE_A, _______,    KC_ETH, _______, _______, _______, _______,    KC_K, _______,    KC_SCLN, KC_ENT},
+  {KC_LSFT, KC_ASH, _______, _______, _______, _______, _______, _______,    KC_COMM, KC_DOT,  KC_UP, _______},//SEND_STRING(SS_RALT(KC_Z))
+  {KC_LCTL, KC_LGUI, KC_LALT, KC_QUOT, _______,   KC_SPC,  KC_SPC,  _______,   KC_SLSH, KC_LEFT, KC_DOWN,   KC_RGHT}
+}
 
 };
 
@@ -176,6 +211,21 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   float plover_song[][2]     = SONG(PLOVER_SOUND);
   float plover_gb_song[][2]  = SONG(PLOVER_GOODBYE_SOUND);
 #endif
+
+void ACUTE(uint16_t keycode) {
+    if (isShiftDown) {
+      unregister_code(KC_LSFT);
+      register_code(KC_QUOT);
+      unregister_code(KC_QUOT);
+      register_code(KC_LSFT);
+    } else {
+      register_code(KC_QUOT);
+      unregister_code(KC_QUOT);
+    }
+    register_code(keycode);
+    unregister_code(keycode);
+    layer_on(_ISK); // shift seems to mess with this
+}
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
@@ -254,6 +304,61 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
           PLAY_SONG(plover_gb_song);
         #endif
         layer_off(_PLOVER);
+      }
+      return false;
+      break;
+    case ISK:
+      if(record->event.pressed) {
+        layer_off(_RAISE);
+        layer_off(_LOWER);
+        layer_off(_ADJUST);
+        layer_on(_ISK);
+      } else {
+        layer_off(_ISK);
+      }
+      return false;
+      break;
+    case KC_LSFT://||KC_RSFT:
+      if(record->event.pressed) {
+        isShiftDown = true;
+      } else {
+        isShiftDown = false;
+      }
+      return true;
+      break;
+    case KC_ACUTE_A:
+      if(record->event.pressed) {
+        ACUTE(KC_A);
+      }
+      return false;
+      break;
+    case KC_ACUTE_E:
+      if(record->event.pressed) {
+        ACUTE(KC_E);
+      }
+      return false;
+      break;
+    case KC_ACUTE_Y:
+      if(record->event.pressed) {
+        ACUTE(KC_Y);
+      }
+      return false;
+      break;
+    case KC_ACUTE_U:
+      if(record->event.pressed) {
+        ACUTE(KC_U);
+      }
+      return false;
+      break;
+    case KC_ACUTE_I:
+      if(record->event.pressed) {
+        ACUTE(KC_I);
+      }
+      return false;
+      break;
+    case KC_ACUTE_O:
+      if(record->event.pressed) {
+        ACUTE(KC_O);
       }
       return false;
       break;
